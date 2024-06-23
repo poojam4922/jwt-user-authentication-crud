@@ -53,34 +53,55 @@ exports.findAll = async (req, res) => {
 //   }
 // };
 
+// exports.update = async (req, res) => {
+//   console.log(req.params.id,"pooja")
+//   try {
+//     const tutorial = await Tutorial.findOneAndUpdate(
+//       { _id: req.params.id },
+//       req.body,
+//       { new: true }
+//     );
+//     if (tutorial.creator.toString() !== req.user.id) {
+//       return res.status(403).send("You are not allowed to edit this tutorial");
+//     }
+
+//     tutorial.title = req.body.title || tutorial.title;
+//     tutorial.body = req.body.body || tutorial.body;
+//     await tutorial.save();
+//     res.status(200).send(tutorial);
+//   } catch (err) {
+//     res.status(500).json({ error: err });
+//   }
+// };
+
 exports.update = async (req, res) => {
-  console.log(req.params.id,"pooja")
   try {
-    const tutorial = await Tutorial.findOneAndUpdate(
+    const editTutorial = await Tutorial.findOneAndUpdate(
       { _id: req.params.id },
       req.body,
       { new: true }
-    );
-    if (tutorial.creator.toString() !== req.user.id) {
-      return res.status(403).send("You are not allowed to edit this tutorial");
+    )
+
+    if (!editTutorial) {
+      return res.status(404).json({message: 'Tutorial not found'})
     }
 
-    tutorial.title = req.body.title || tutorial.title;
-    tutorial.body = req.body.body || tutorial.body;
-    await tutorial.save();
-    res.status(200).send(tutorial);
+    return res.status(200).send({ success: true, tutorial: editTutorial })
   } catch (err) {
-    res.status(500).json({ error: err });
+      res.status(500).json({ error: err })
   }
-};
+}
+
 exports.delete = async (req, res) => {
   try {
-    const result = await Tutorial.deleteOne({
+    const tutorial = await Tutorial.findOneAndDelete({
       _id: req.params.id,
-      creator: req.user.id // Ensure only the creator can delete their tutorial
+  
     });
 
-    if (result.deletedCount === 0) {
+    console.log(tutorial)
+ 
+    if (!tutorial) {
       return res.status(404).json({ message: "Tutorial not found or you are not allowed to delete it" });
     }
 

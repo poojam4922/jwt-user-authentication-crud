@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 require("dotenv").config();
 const user = require("../models/user");
 const  generateToken  = require('../middleware/generateToken');
-
+const blacklist = new Set();
 const register = async (req, res) => {
   const { firstName, lastName, email, phone } = req.body;
   const password = Math.random().toString(36).slice(-8); // Generate a simple password
@@ -80,22 +80,22 @@ const login = async (req, res) => {
 };
 
 
-const logout = async(req, res) =>{
+const logout = async (req, res) => {
+  const userId = req.user.userId;
+
   try {
-    const user = await User.findById(req.user.id);
-    console.log(user);
-    if(!user){
+    // Update user's token version
+    const user = await User.findByIdAndUpdate(userId, { $inc: { tokenVersion: 1 } }, { new: true });
+    
+    if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    user.refreshToken = null;
-    await user.save();
 
     res.json({ message: 'Logout successful' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-}
-
+};
 module.exports = {
   register,
   login,
